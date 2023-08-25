@@ -4,6 +4,8 @@
 
 AI-powered Realtime visual novel
 
+Deployed at: https://rt-vn.vercel.app/
+
 
 ### How to run
 
