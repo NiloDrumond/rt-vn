@@ -29,6 +29,31 @@ const parseResponse= (content) => {
   };
 }
 
+/** Formato de uma requisicao de escolha
+ * 
+ * try {
+ *    const response = await openai.chat.completions.create({
+ *      model: "gpt-3.5-turbo",
+ *      messages: [
+ *        { role: "user", content: choice },
+ *        { role: "assistant", content: assistant}
+ *        ],
+ *      temperature: 0,
+ *      max_tokens: 1024,
+ *    });
+ *
+ *    if (response.choices.length <= 0)
+ *      // TODO: handle error
+ *
+ *    const message = response.choices[0].message.content
+ *    const vnScene = parseResponse(message);
+ *  
+ *  } catch (error) {
+ *    // TODO: handle error
+ *  }
+ * 
+ */
+
 export const actions: Actions = {
   create: async ({ request, cookies }) => {
     const data = await request.formData();
