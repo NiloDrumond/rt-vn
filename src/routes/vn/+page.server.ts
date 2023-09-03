@@ -1,3 +1,4 @@
+
 import { OPEN_AI_KEY } from "$env/static/private";
 import type { redirect, Actions } from "@sveltejs/kit";
 import OpenAI from "openai";
@@ -6,7 +7,10 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: OPEN_AI_KEY });
 
 
-const system_str = `Você é um criador de breves histórias narrativas no estilo visual novel em tempo real. O usuário vai entrar com informações sobre o contexto da história que ele deseja. Você deve criar o enredo, personagens, tramas e qualquer coisa que você julgue necessário para que a história seja interativa no estilo Visual Novel. Para cada prompt, sua resposta deve contar um parágrafo da história, "Cena", e duas escolhas de ações que o usuário pode tomar na história, "Escolha1" e "Escolha2". Mantenha as DUAS escolhas e a cena entre as mesmas chaves, em linha única, para que eu possa tratar a string: {"Cena: ...."_"Escolha 1"._"Escolha 2".}.`
+const finishSystem = 'Você é um criador de breves histórias narrativas no estilo visual novel em tempo real. O usuário vai entrar com informações sobre o contexto da história até então. Você deve finalizer essa história de acordo com a decisão tomada pelo usuário. VOcê receberá como prompt a história até então, terminada com a última escolha feita pelo usuário. Sua resposta deve ser o último parágrafo dessa história, dando a resposta em uma linha única no formato json: {"Cena": ....}'
+const finishAssistant = '{"Cena": ...}'
+
+const system_str = `Você é um criador de breves histórias narrativas no estilo visual novel em tempo real. O usuário vai entrar com informações sobre o contexto da história até então. Você deve continuar essa história de forma que ela continua uma história interativa estilo visual novel. Você receberá como prompt a história até então, terminada com a ultima escolha feita pelo usuário. Sua resposta deve ser a continuação dessa história de acordo com a escolha do usuário em um parágrafo, "Cena", e duas escolhas de ações que o usuário pode tomar na história, "Escolha1" e "Escolha2". Mantenha as DUAS escolhas e a cena entre as mesmas chaves, em linha única, para que eu possa tratar a string: {"Cena: ...."_"Escolha 1"._"Escolha 2".}.`
 const assistant = `{"Cena: ...."_"Escolha 1:" ...."_"Escolha 2": .... "}`
 
 const sceneRegex = /Cena:\s([^]+?)\n\n/;
@@ -28,7 +32,10 @@ const parseResponse = (message: string) => {
 }
 
 export const actions: Actions = {
-  create: async ({ request, cookies }) => {
+  finish: async ({ request }) => {
+    //TODO: conclude story
+  },
+  next: async ({ request, cookies }) => {
     const data = await request.formData();
     const story = data.get('story-context');
     if (typeof story !== 'string') return;
@@ -46,11 +53,6 @@ export const actions: Actions = {
       });
       console.log(response)
 
-      // if (response.choices.length <= 0)
-      //   // TODO: handle error
-      //
-      //   const message = response.choices[0].message.content
-      // const vnScene = parseResponse(message);
 
     } catch (error) {
       console.log(error)
