@@ -1,58 +1,92 @@
-<script>
+<script lang="ts">
 	import Textarea from '$lib/components/textarea.svelte';
+	import { vnStore } from '$lib/store';
+	import type { VNStep, NextResponse } from '$lib/types';
+	import axios from 'axios';
 	import Icon from '@iconify/svelte';
-	let customOption = false;
+	import { vnForm } from './store';
+	let currentStep: VNStep;
+	$: currentStep = $vnStore.steps[$vnStore.steps.length - 1];
+	let hasFinished: boolean;
+	$: hasFinished = !currentStep.choice1 && !currentStep.choice2;
+
+	async function handleSubmit(choiceNum?: number) {
+		let choice = '';
+		if (choiceNum === 1) {
+			choice = currentStep.choice1;
+		} else if (choiceNum === 2) {
+			choice = currentStep.choice2;
+		} else {
+			choice = $vnForm.choiceText;
+		}
+		const vnContext = vnStore.getVNContext(choice);
+		const response = await axios.post<NextResponse>('/api/vn/next', {
+			choice,
+			vnContext,
+			finish: $vnForm.finishStory
+		});
+		if (response.status === 200) {
+			vnStore.nextStep(choice, response.data);
+		}
+	}
 </script>
 
 <section class="flex flex-col items-center w-full">
-	<form class="flex flex-col max-w-[1200px] gap-8">
+	<form class="flex flex-col max-w-[1000px] gap-8 w-full">
 		<div class="bg-gray-700 w-full rounded-xl flex flex-col relative p-8 gap-4">
-			<div class="absolute top-0 right-0 p-4"><p>Cena 1</p></div>
+			<div class="absolute top-0 right-0 p-4"><p>Cena {$vnStore.steps.length}</p></div>
 			<img
 				class="max-w-full max-h-[30vh] object-contain"
 				src="https://picsum.photos/720?image=29"
 				alt="vn art"
 			/>
-			<p>
-				Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minus iure quo temporibus
-				perferendis aliquam nisi a saepe enim tempore? Nostrum ducimus tempore ipsum minus,
-				perspiciatis nisi itaque nemo tempora nobis? Lorem, ipsum dolor sit amet consectetur
-				adipisicing elit. Corporis quae earum magni odio deserunt ratione provident saepe! Eveniet
-				voluptates molestias quis corporis quo quisquam est ducimus assumenda. Totam, harum et.
-			</p>
+			<p>{currentStep.scene}</p>
 		</div>
 
-		<div class="flex flex-row gap-8">
-			<label>
-				<input name="end-story" class="w-5 h-5 cursor-pointer" type="checkbox" />
-				Terminar a história após essa escolha?
-			</label>
-			|
-			<label>
-				<input name="custom-option" bind:checked={customOption} class="w-5 h-5 cursor-pointer" type="checkbox" />
-				Criar sua própria escolha?
-			</label>
-		</div>
-		{#if customOption}
-			<div class="place-self-center flex flex-row items-start gap-2">
-				<Textarea maxlength={100} placeholder="Descreva sua escolha aqui..." required />
-				<button class="solid h-fit"><Icon icon="carbon:send-alt" />Enviar escolha</button>
+		{#if hasFinished}
+			<div class="flex flex-row items-center gap-4 mx-auto">
+				<p>Deseja baixar a visual novel?</p>
+				<button class="solid">Baixar</button>
 			</div>
-      {:else}
-
-		<div class="flex flex-wrap flex-row lg:flex-nowrap w-full gap-4">
-			<button class="solid"
-				>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Corrupti adipisci accusamus rem
-				laboriosam, esse corporis non ea consectetur aut nihil molestias ad nemo id exercitationem
-				suscipit quis, nam atque similique?</button
-			>
-
-			<button class="solid"
-				>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Provident consectetur, saepe
-				sint, in ipsam inventore quasi qui distinctio natus praesentium laborum, tempore blanditiis?
-				Velit, ipsa perferendis praesentium veniam libero deserunt.</button
-			>
-		</div>
+		{:else}
+			<div class="flex flex-row gap-8">
+				<label>
+					<input
+						bind:checked={$vnForm.finishStory}
+						name="end-story"
+						class="w-5 h-5 cursor-pointer"
+						type="checkbox"
+					/>
+					Terminar a história após essa escolha?
+				</label>
+				|
+				<label>
+					<input
+						name="custom-option"
+						bind:checked={$vnForm.customChoice}
+						class="w-5 h-5 cursor-pointer"
+						type="checkbox"
+					/>
+					Criar sua própria escolha?
+				</label>
+			</div>
+			{#if $vnForm.customChoice}
+				<div class="place-self-center flex flex-row items-start gap-2">
+					<Textarea maxlength={100} placeholder="Descreva sua escolha aqui..." required />
+					<button class="solid h-fit"><Icon icon="carbon:send-alt" />Enviar escolha</button>
+				</div>
+			{:else}
+				<div class="flex flex-wrap flex-row lg:flex-nowrap w-full gap-4">
+					{#if currentStep.choice1}
+						<button class="solid" on:click={() => handleSubmit(1)}>
+							{currentStep.choice1}
+						</button>
+					{/if}
+					{#if currentStep.choice2}
+						<button class="solid" on:click={() => handleSubmit(2)}>{currentStep.choice2}</button>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 	</form>
 </section>
