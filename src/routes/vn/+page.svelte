@@ -88,7 +88,7 @@
 						placeholder="Descreva sua escolha aqui..."
 						required
 					/>
-					<button disabled={loading} class="solid h-fit"
+					<button disabled={loading} on:click={() => handleSubmit()} class="solid h-fit"
 						><Icon icon="carbon:send-alt" />Enviar escolha</button
 					>
 				</div>
