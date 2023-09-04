@@ -87,6 +87,7 @@
 						maxlength={100}
 						placeholder="Descreva sua escolha aqui..."
 						required
+						bind:value={$vnForm.choiceText}
 					/>
 					<button disabled={loading} on:click={() => handleSubmit()} class="solid h-fit"
 						><Icon icon="carbon:send-alt" />Enviar escolha</button
