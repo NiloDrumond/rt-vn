@@ -28,6 +28,10 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+html {
+  height: 100vh;
+}
+
 @layer base {
   a > span {
     @apply hover:underline hover:text-fuchsia-500 cursor-pointer;
