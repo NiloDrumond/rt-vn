@@ -9,25 +9,33 @@
 	$: currentStep = $vnStore.steps[$vnStore.steps.length - 1];
 	let hasFinished: boolean;
 	$: hasFinished = !currentStep.choice1 && !currentStep.choice2;
+	let loading = false;
 
 	async function handleSubmit(choiceNum?: number) {
 		let choice = '';
-		if (choiceNum === 1) {
+		if (choiceNum === 1 && currentStep.choice1) {
 			choice = currentStep.choice1;
-		} else if (choiceNum === 2) {
+		} else if (choiceNum === 2 && currentStep.choice2) {
 			choice = currentStep.choice2;
 		} else {
 			choice = $vnForm.choiceText;
 		}
 		const vnContext = vnStore.getVNContext(choice);
+		loading = true;
 		const response = await axios.post<NextResponse>('/api/vn/next', {
 			choice,
 			vnContext,
 			finish: $vnForm.finishStory
 		});
+		loading = false;
 		if (response.status === 200) {
 			vnStore.nextStep(choice, response.data);
 		}
+	}
+	let downloadUrl: string;
+	function prepareDownload() {
+		const blob = new Blob([vnStore.getVNAsText()], { type: 'text/plain' });
+		downloadUrl = URL.createObjectURL(blob);
 	}
 </script>
 
@@ -46,7 +54,9 @@
 		{#if hasFinished}
 			<div class="flex flex-row items-center gap-4 mx-auto">
 				<p>Deseja baixar a visual novel?</p>
-				<button class="solid">Baixar</button>
+				<button on:click={prepareDownload} class="solid"
+					><a href={downloadUrl} download="visualnovel.txt">Baixar em .txt</a></button
+				>
 			</div>
 		{:else}
 			<div class="flex flex-row gap-8">
@@ -54,7 +64,7 @@
 					<input
 						bind:checked={$vnForm.finishStory}
 						name="end-story"
-						class="w-5 h-5 cursor-pointer"
+						class="w-5 h-5 cursor-pointer mr-1"
 						type="checkbox"
 					/>
 					Terminar a história após essa escolha?
@@ -64,7 +74,7 @@
 					<input
 						name="custom-option"
 						bind:checked={$vnForm.customChoice}
-						class="w-5 h-5 cursor-pointer"
+						class="w-5 h-5 cursor-pointer mr-1"
 						type="checkbox"
 					/>
 					Criar sua própria escolha?
@@ -72,18 +82,27 @@
 			</div>
 			{#if $vnForm.customChoice}
 				<div class="place-self-center flex flex-row items-start gap-2">
-					<Textarea maxlength={100} placeholder="Descreva sua escolha aqui..." required />
-					<button class="solid h-fit"><Icon icon="carbon:send-alt" />Enviar escolha</button>
+					<Textarea
+						disabled={loading}
+						maxlength={100}
+						placeholder="Descreva sua escolha aqui..."
+						required
+					/>
+					<button disabled={loading} class="solid h-fit"
+						><Icon icon="carbon:send-alt" />Enviar escolha</button
+					>
 				</div>
 			{:else}
 				<div class="flex flex-wrap flex-row lg:flex-nowrap w-full gap-4">
 					{#if currentStep.choice1}
-						<button class="solid" on:click={() => handleSubmit(1)}>
+						<button disabled={loading} class="solid" on:click={() => handleSubmit(1)}>
 							{currentStep.choice1}
 						</button>
 					{/if}
 					{#if currentStep.choice2}
-						<button class="solid" on:click={() => handleSubmit(2)}>{currentStep.choice2}</button>
+						<button disabled={loading} class="solid" on:click={() => handleSubmit(2)}
+							>{currentStep.choice2}</button
+						>
 					{/if}
 				</div>
 			{/if}

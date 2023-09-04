@@ -13,7 +13,6 @@ export type VNState = {
 export type NextRequest = {
   vnContext: string;
   finish: boolean;
-  choice: string;
 }
 
 export type NextResponse = VNStep;

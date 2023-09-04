@@ -6,12 +6,15 @@
 	import { goto } from '$app/navigation';
 
 	let initialDescription = '';
+	let loading = false;
 
 	async function onSubmit() {
+		loading = true;
 		const response = await axios.post<CreateResponse>('/api/vn/create', { initialDescription });
+		loading = false;
 		if (response.status === 200) {
 			protoVNStore.startVN(initialDescription, response.data);
-      goto('/vn')
+			goto('/vn');
 		}
 	}
 </script>
@@ -22,10 +25,17 @@
 		<Textarea
 			bind:value={initialDescription}
 			required
+			disabled={loading}
 			name="initialDescription"
 			id="initialDescription"
 			placeholder="Escreva o que quiser. Lugares, acontecimentos, personagens..."
 		/>
-		<button type="submit" class="solid place-self-end bg-fuchsia-600">Criar!</button>
+		<button type="submit" disabled={loading} class="solid place-self-end bg-fuchsia-600"
+			>{#if loading}
+				Carregando...
+			{:else}
+				Criar!
+			{/if}</button
+		>
 	</form>
 </section>

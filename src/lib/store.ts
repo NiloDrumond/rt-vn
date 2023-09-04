@@ -48,6 +48,21 @@ function createVNStore() {
     })
   }
 
+  function getVNAsText(): string {
+    const state = get(store);
+    let result = `Descrição inicial: ${state.initialDescription}\n`;
+    result += `\n----------\n\n`
+
+    const length = state.steps.length
+    for (let i = 0; i < length - 1; i++) {
+      const step = state.steps[i];
+      const choice = state.selectedChoices[i];
+      result += (`Cena: ${step.scene}\n` + `Escolha 1: ${step.choice1}\n` + `Escolha 2: ${step.choice2}\n` + `Escolha feita: ${choice}\n` + `\n----------\n\n`)
+    }
+    result += state.steps[state.steps.length - 1].scene;
+    return result;
+  }
+
   function getVNContext(selectedChoice: string): string {
     const state = get(store);
     let result = `Descrição inicial: ${state.initialDescription}\n`;
@@ -61,7 +76,7 @@ function createVNStore() {
     return result;
   }
 
-  return { subscribe, nextStep, getVNContext }
+  return { subscribe, nextStep, getVNContext, getVNAsText }
 }
 
 export const vnStore = createVNStore();
