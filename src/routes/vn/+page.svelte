@@ -32,6 +32,10 @@
 			vnStore.nextStep(choice, response.data);
 		}
 	}
+  $: if(currentStep) {
+				$vnForm.choiceText = '';
+				$vnForm.customChoice = false;
+  }
 	let downloadUrl: string;
 	function prepareDownload() {
 		const blob = new Blob([vnStore.getVNAsText()], { type: 'text/plain' });
@@ -41,7 +45,9 @@
 
 <section class="flex flex-col items-center w-full">
 	<form class="flex flex-col max-w-[1000px] gap-8 w-full">
-		<div class="bg-slate-300 border border-slate-400 dark:border-none dark:bg-gray-700 w-full rounded-xl flex flex-col relative p-8 gap-4">
+		<div
+			class="bg-slate-300 border border-slate-400 dark:border-none dark:bg-gray-700 w-full rounded-xl flex flex-col relative p-8 gap-4"
+		>
 			<div class="absolute top-0 right-0 p-4"><p>Cena {$vnStore.steps.length}</p></div>
 			<img
 				class="max-w-full max-h-[30vh] object-contain"
@@ -110,3 +116,4 @@
 		{/if}
 	</form>
 </section>
+

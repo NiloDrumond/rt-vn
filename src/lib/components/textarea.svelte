@@ -9,12 +9,12 @@
 
 <div class="relative w-fit">
 	<textarea
-		class="h-32 p-2 bg-slate-300 border-slate-400 dark:bg-gray-700 border dark:border-gray-500 rounded-xl w-[480px]"
+		class="peer h-32 p-2 bg-slate-300 border-slate-400 dark:bg-gray-700 border dark:border-gray-500 rounded-xl w-[480px] disabled:opacity-40"
 		bind:value={value}
 		{maxlength}
 		{...$$restProps}
 	/>
-	<div class="absolute bottom-2 right-2 text-sm">
+	<div class="absolute bottom-2 right-2 text-sm peer-disabled:opacity-40">
 		{value.length}/{maxlength}
 	</div>
 </div>
