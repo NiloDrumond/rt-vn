@@ -9,7 +9,7 @@
 
 <div class="relative w-fit">
 	<textarea
-		class="h-32 p-2 bg-gray-700 border border-gray-500 rounded-xl w-[480px]"
+		class="h-32 p-2 bg-slate-300 border-slate-400 dark:bg-gray-700 border dark:border-gray-500 rounded-xl w-[480px]"
 		bind:value={value}
 		{maxlength}
 		{...$$restProps}
