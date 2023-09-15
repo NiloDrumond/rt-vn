@@ -10,7 +10,7 @@ class Data(BaseModel):
 @app.post("/text-to-speech")
 async def text_to_speech(data: Data):
     # Create a gTTS object and save the audio to a temporary file
-    tts = gTTS(data.text)
+    tts = gTTS(data.text, lang='pt-br')
     audio_path = "/tmp/audio.mp3"  # Adjust the path as needed
     tts.save(audio_path)
 
