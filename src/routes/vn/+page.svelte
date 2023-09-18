@@ -12,7 +12,7 @@
 		nextSystemContent,
 		finishSystemContent
 	} from '$lib/constants';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import { get } from 'svelte/store';
 	import { speak } from '$lib/tts';
@@ -86,8 +86,17 @@
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
 	}
 
+	let audio: HTMLAudioElement | null = null;
+	function stopAudio() {
+		if (audio) {
+			audio.pause();
+			audio.remove();
+		}
+	}
 	$: if (currentSceneLoaded) {
-		speak(currentScene);
+		const newAudio = speak(currentScene);
+    stopAudio();
+		audio = newAudio;
 	}
 
 	$: if ($messages.length > 0) {
@@ -136,6 +145,7 @@
 			vnForm.set({ choiceText: '', customChoice: false, finishStory: false, initialized: true });
 		}
 		currentSceneLoaded = false;
+    stopAudio();
 	}
 
 	let initialDescription = '';
@@ -155,6 +165,12 @@
 		reload();
 		shouldReload = false;
 	}
+
+	onDestroy(() => {
+		if (audio) {
+			audio.pause();
+		}
+	});
 </script>
 
 {#if !$vnForm.initialized}
