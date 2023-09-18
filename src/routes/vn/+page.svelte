@@ -16,6 +16,7 @@
 	import Icon from '@iconify/svelte';
 	import { get } from 'svelte/store';
 	import { speak } from '$lib/tts';
+	import { generateImage } from '$lib/images';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	let loadingCreate = false;
@@ -82,12 +83,16 @@
 		const blob = new Blob([getVNAsText()], { type: 'text/plain' });
 		downloadUrl = URL.createObjectURL(blob);
 	}
+
 	$: if (!$isLoading && $messages.length > 0) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
 	}
 
 	$: if (currentSceneLoaded) {
 		speak(currentScene);
+		
+		generateImage(currentScene)
+		.then(value => console.log(`Imagem gerada em: ${value}`));
 	}
 
 	$: if ($messages.length > 0) {
