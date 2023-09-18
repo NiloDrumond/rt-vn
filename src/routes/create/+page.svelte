@@ -1,21 +1,17 @@
 <script lang="ts">
-	import Textarea from '$lib/components/textarea.svelte';
-	import axios from 'axios';
-	import type { CreateResponse } from '$lib/types';
-	import { protoVNStore } from '$lib/store';
 	import { goto } from '$app/navigation';
+
+	import Textarea from '$lib/components/textarea.svelte';
+	import { VNStore } from '$lib/store';
 
 	let initialDescription = '';
 	let loading = false;
 
 	async function onSubmit() {
 		loading = true;
-		const response = await axios.post<CreateResponse>('/api/vn/create', { initialDescription });
+		await VNStore.get().startVN(initialDescription);
 		loading = false;
-		if (response.status === 200) {
-			protoVNStore.startVN(initialDescription, response.data);
-			goto('/vn');
-		}
+		goto('/vn');
 	}
 </script>
 

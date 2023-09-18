@@ -10,7 +10,7 @@
 	<button>
 		<Icon icon="carbon:user-avatar" class="text-gray-400" height={26} width={26} />
 	</button>
-	<a href="/create">
+	<a href="/vn">
 		<button class="solid"><Icon icon="carbon:add-alt" />Criar Visual Novel</button>
 	</a>
 </div>
