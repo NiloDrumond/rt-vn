@@ -24,6 +24,7 @@ export type CreateRequest = {
 export type CreateResponse = VNStep;
 
 export type VNForm = {
+  initialized: boolean;
   customChoice: boolean;
   choiceText: string;
   finishStory: boolean;

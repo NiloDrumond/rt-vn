@@ -15,20 +15,34 @@
 	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import { get } from 'svelte/store';
+	import { speak } from '$lib/tts';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	let loadingCreate = false;
-	let initialized = false;
 	let hasFinished = false;
 
 	const { messages, setMessages, isLoading, reload } = useChat({
 		api: '/api/vn'
 	});
 
+	let create: null | string = null;
+	$: create = $page.url.searchParams.get('create');
+
+	$: if (create) {
+		setMessages([]);
+		loadingCreate = false;
+		$vnForm.initialized = false;
+		hasFinished = false;
+		localStorage.removeItem(STORAGE_KEY);
+		goto('/vn');
+	}
+
 	onMount(() => {
 		const raw = localStorage.getItem(STORAGE_KEY);
 		if (raw) {
 			const parsed = JSON.parse(raw) as Message[];
 			setMessages(parsed);
-			initialized = true;
+			$vnForm.initialized = true;
 			const lastMessage = parsed[parsed.length - 3];
 			if (lastMessage.role === 'system' && lastMessage.content === finishSystemContent) {
 				hasFinished = true;
@@ -64,12 +78,17 @@
 	}
 	$: if (!$isLoading && $messages.length > 0) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
+		speak(currentScene);
 	}
 
 	let currentScene = '';
 	let choice1 = '';
 	let choice2 = '';
 	let currentLength = 1;
+
+	$: if ($messages.length > 0) {
+		currentLength = $messages.filter((message) => message.role === 'assistant').length;
+	}
 
 	$: if ($messages.length > 0) {
 		let lastMessage = $messages[$messages.length - 1];
@@ -105,7 +124,7 @@
 				{ id: nanoid(), role: 'user', content: choice }
 			]);
 			shouldReload = true;
-			vnForm.set({ choiceText: '', customChoice: false, finishStory: false });
+			vnForm.set({ choiceText: '', customChoice: false, finishStory: false, initialized: true });
 		}
 	}
 
@@ -118,7 +137,8 @@
 		]);
 		shouldReload = true;
 		loadingCreate = false;
-		initialized = true;
+    initialDescription = '';
+		$vnForm.initialized = true;
 	}
 
 	$: if (shouldReload && $messages.length > 0) {
@@ -127,7 +147,7 @@
 	}
 </script>
 
-{#if !initialized}
+{#if !$vnForm.initialized}
 	<section class="flex flex-col items-center w-full h-full pt-40">
 		<form class="flex flex-col gap-2" on:submit={onCreate}>
 			<label for="initialDescription"> Descreva a história: </label>
