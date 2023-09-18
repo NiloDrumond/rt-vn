@@ -28,6 +28,12 @@
 	let create: null | string = null;
 	$: create = $page.url.searchParams.get('create');
 
+	let currentScene = '';
+	let currentSceneLoaded = false;
+	let choice1 = '';
+	let choice2 = '';
+	let currentLength = 1;
+
 	$: if (create) {
 		setMessages([]);
 		loadingCreate = false;
@@ -78,16 +84,18 @@
 	}
 	$: if (!$isLoading && $messages.length > 0) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
+	}
+
+	$: if (currentSceneLoaded) {
 		speak(currentScene);
 	}
 
-	let currentScene = '';
-	let choice1 = '';
-	let choice2 = '';
-	let currentLength = 1;
-
 	$: if ($messages.length > 0) {
 		currentLength = $messages.filter((message) => message.role === 'assistant').length;
+	}
+
+	$: if (currentScene && !isLoading) {
+		currentSceneLoaded = true;
 	}
 
 	$: if ($messages.length > 0) {
@@ -99,6 +107,7 @@
 			}
 			let choice1Match = choice1Regex.exec(lastMessage.content);
 			if (choice1Match) {
+				currentSceneLoaded = true;
 				choice1 = choice1Match[1].trim();
 			}
 			let choice2Match = choice2Regex.exec(lastMessage.content);
@@ -126,6 +135,7 @@
 			shouldReload = true;
 			vnForm.set({ choiceText: '', customChoice: false, finishStory: false, initialized: true });
 		}
+		currentSceneLoaded = false;
 	}
 
 	let initialDescription = '';
@@ -137,7 +147,7 @@
 		]);
 		shouldReload = true;
 		loadingCreate = false;
-    initialDescription = '';
+		initialDescription = '';
 		$vnForm.initialized = true;
 	}
 

@@ -6,6 +6,9 @@
 	import Header from '$lib/components/header.svelte';
 </script>
 
+<svelte:head>
+	<title>RT-VN</title>
+</svelte:head>
 <body class="p-6 flex flex-col gap-8 h-full">
 	<Header />
 	<main class="flex-1">
