@@ -9,6 +9,7 @@
 		sceneRegex,
 		choice1Regex,
 		choice2Regex,
+		keywordRegex,
 		nextSystemContent,
 		finishSystemContent
 	} from '$lib/constants';
@@ -33,7 +34,9 @@
 	let currentSceneLoaded = false;
 	let choice1 = '';
 	let choice2 = '';
+	let keywords = '';
 	let currentLength = 1;
+	let imagePath = ''
 
 	$: if (create) {
 		setMessages([]);
@@ -91,8 +94,8 @@
 	$: if (currentSceneLoaded) {
 		speak(currentScene);
 		
-		generateImage(currentScene)
-		.then(value => console.log(`Imagem gerada em: ${value}`));
+		generateImage(keywords)
+		.then(value => { imagePath = value; });
 	}
 
 	$: if ($messages.length > 0) {
@@ -106,6 +109,10 @@
 	$: if ($messages.length > 0) {
 		let lastMessage = $messages[$messages.length - 1];
 		if (lastMessage.role === 'assistant') {
+			let keywordMatch = keywordRegex.exec(lastMessage.content);
+			if (keywordMatch) {
+				keywords = keywordMatch[1].trim();
+			}
 			let sceneMatch = sceneRegex.exec(lastMessage.content);
 			if (sceneMatch) {
 				currentScene = sceneMatch[1].trim();
@@ -192,7 +199,7 @@
 				<div class="absolute top-0 right-0 p-4"><p>Cena {currentLength}</p></div>
 				<img
 					class="max-w-full max-h-[30vh] object-contain"
-					src="https://picsum.photos/720?image=29"
+					src="{imagePath}"
 					alt="vn art"
 				/>
 				<p>{currentScene}</p>
