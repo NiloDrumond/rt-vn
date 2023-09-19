@@ -35,8 +35,9 @@
 	let choice1 = '';
 	let choice2 = '';
 	let keywords = '';
-  let keywordsLoaded = false;
+	let keywordsLoaded = false;
 	let currentLength = 1;
+	let muted = false;
 	let imageSrc: string | undefined = undefined;
 
 	$: if (create) {
@@ -92,17 +93,13 @@
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
 	}
 
-	let audio: HTMLAudioElement | null = null;
+	let audio: HTMLAudioElement;
 	function stopAudio() {
-		if (audio) {
-			audio.pause();
-			audio.remove();
-		}
+		audio.pause();
 	}
 	$: if (currentSceneLoaded) {
-		const newAudio = speak(currentScene);
-		stopAudio();
-		audio = newAudio;
+		speak(audio, currentScene);
+		audio.play();
 	}
 
 	async function generateImage() {
@@ -122,9 +119,9 @@
 		currentSceneLoaded = true;
 	}
 
-  $: if(keywords && !isLoading) {
-    keywordsLoaded = true;
-  }
+	$: if (keywords && !isLoading) {
+		keywordsLoaded = true;
+	}
 
 	$: if ($messages.length > 0) {
 		let lastMessage = $messages[$messages.length - 1];
@@ -140,7 +137,7 @@
 			}
 			let choice1Match = choice1Regex.exec(lastMessage.content);
 			if (choice1Match) {
-        keywordsLoaded = true;
+				keywordsLoaded = true;
 				choice1 = choice1Match[1].trim();
 			}
 			let choice2Match = choice2Regex.exec(lastMessage.content);
@@ -169,7 +166,7 @@
 			vnForm.set({ choiceText: '', customChoice: false, finishStory: false, initialized: true });
 		}
 		currentSceneLoaded = false;
-    keywordsLoaded = false;
+		keywordsLoaded = false;
 		stopAudio();
 	}
 
@@ -192,12 +189,11 @@
 	}
 
 	onDestroy(() => {
-		if (audio) {
-			audio.pause();
-		}
+		audio.pause();
 	});
 </script>
 
+<audio bind:this={audio} {muted} />
 {#if !$vnForm.initialized}
 	<section class="flex flex-col items-center w-full h-full pt-40">
 		<form class="flex flex-col gap-2" on:submit={onCreate}>
@@ -226,8 +222,17 @@
 				class="bg-slate-300 border border-slate-400 dark:border-none dark:bg-gray-700 w-full rounded-xl flex flex-col relative p-8 gap-4"
 			>
 				<div class="absolute top-0 right-0 p-4"><p>Cena {currentLength}</p></div>
+				<div class="absolute top-0 left-0 p-4">
+					<button class="with-border" on:click={() => (muted = !muted)}>
+						<Icon icon={muted ? 'carbon:volume-mute' : 'carbon:volume-up'} />
+					</button>
+				</div>
 
-				<img class="max-w-full max-h-[30vh] object-contain" src={imageSrc || 'https://cdn2.iconfinder.com/data/icons/vivid/48/image-512.png'} alt="vn art" />
+				<img
+					class="max-w-full max-h-[30vh] object-contain"
+					src={imageSrc || 'https://cdn2.iconfinder.com/data/icons/vivid/48/image-512.png'}
+					alt="vn art"
+				/>
 				<p>{currentScene}</p>
 			</div>
 
