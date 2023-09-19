@@ -9,7 +9,7 @@ export async function generateImage(prompt: string) {
 	let res = await openai.images.generate({
 		prompt: prompt,
 		n: 1,
-		size: "1024x1024",
+		size: "512x512",
 	});
 
 	let image_url = res["data"][0]["url"];
