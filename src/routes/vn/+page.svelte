@@ -1,4 +1,5 @@
 <script lang="ts">
+	import axios from 'axios';
 	import Textarea from '$lib/components/textarea.svelte';
 	import { useChat, type Message } from 'ai/svelte';
 	import { vnForm } from './store';
@@ -13,11 +14,10 @@
 		nextSystemContent,
 		finishSystemContent
 	} from '$lib/constants';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import { get } from 'svelte/store';
 	import { speak } from '$lib/tts';
-	import { generateImage } from '$lib/images';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	let loadingCreate = false;
@@ -35,8 +35,9 @@
 	let choice1 = '';
 	let choice2 = '';
 	let keywords = '';
+  let keywordsLoaded = false;
 	let currentLength = 1;
-	let imagePath = ''
+	let imageSrc: string | undefined = undefined;
 
 	$: if (create) {
 		setMessages([]);
@@ -91,11 +92,26 @@
 		localStorage.setItem(STORAGE_KEY, JSON.stringify($messages));
 	}
 
+	let audio: HTMLAudioElement | null = null;
+	function stopAudio() {
+		if (audio) {
+			audio.pause();
+			audio.remove();
+		}
+	}
 	$: if (currentSceneLoaded) {
-		speak(currentScene);
-		
-		generateImage(keywords)
-		.then(value => { imagePath = value; });
+		const newAudio = speak(currentScene);
+		stopAudio();
+		audio = newAudio;
+	}
+
+	async function generateImage() {
+		const response = await axios.get<string | undefined>(`/api/image?keywords=${keywords}`);
+		imageSrc = response.data;
+	}
+
+	$: if (keywordsLoaded) {
+		generateImage();
 	}
 
 	$: if ($messages.length > 0) {
@@ -106,20 +122,25 @@
 		currentSceneLoaded = true;
 	}
 
+  $: if(keywords && !isLoading) {
+    keywordsLoaded = true;
+  }
+
 	$: if ($messages.length > 0) {
 		let lastMessage = $messages[$messages.length - 1];
 		if (lastMessage.role === 'assistant') {
-			let keywordMatch = keywordRegex.exec(lastMessage.content);
-			if (keywordMatch) {
-				keywords = keywordMatch[1].trim();
-			}
 			let sceneMatch = sceneRegex.exec(lastMessage.content);
 			if (sceneMatch) {
 				currentScene = sceneMatch[1].trim();
 			}
+			let keywordMatch = keywordRegex.exec(lastMessage.content);
+			if (keywordMatch) {
+				currentSceneLoaded = true;
+				keywords = keywordMatch[1].trim();
+			}
 			let choice1Match = choice1Regex.exec(lastMessage.content);
 			if (choice1Match) {
-				currentSceneLoaded = true;
+        keywordsLoaded = true;
 				choice1 = choice1Match[1].trim();
 			}
 			let choice2Match = choice2Regex.exec(lastMessage.content);
@@ -148,6 +169,8 @@
 			vnForm.set({ choiceText: '', customChoice: false, finishStory: false, initialized: true });
 		}
 		currentSceneLoaded = false;
+    keywordsLoaded = false;
+		stopAudio();
 	}
 
 	let initialDescription = '';
@@ -167,6 +190,12 @@
 		reload();
 		shouldReload = false;
 	}
+
+	onDestroy(() => {
+		if (audio) {
+			audio.pause();
+		}
+	});
 </script>
 
 {#if !$vnForm.initialized}
@@ -197,11 +226,8 @@
 				class="bg-slate-300 border border-slate-400 dark:border-none dark:bg-gray-700 w-full rounded-xl flex flex-col relative p-8 gap-4"
 			>
 				<div class="absolute top-0 right-0 p-4"><p>Cena {currentLength}</p></div>
-				<img
-					class="max-w-full max-h-[30vh] object-contain"
-					src="{imagePath}"
-					alt="vn art"
-				/>
+
+				<img class="max-w-full max-h-[30vh] object-contain" src={imageSrc || 'https://cdn2.iconfinder.com/data/icons/vivid/48/image-512.png'} alt="vn art" />
 				<p>{currentScene}</p>
 			</div>
 

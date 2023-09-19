@@ -1,11 +1,9 @@
-export function speak(text: string): void {
-  const speechSynthesis = window.speechSynthesis;
+import { PUBLIC_VOICE_RSS_KEY } from "$env/static/public";
 
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR'; // Set the language to Brazilian Portuguese
-    speechSynthesis.speak(utterance);
-  } else {
-    console.error('Text-to-speech not supported in this browser.');
-  }
+export function speak(text: string): HTMLAudioElement {
+  const apiUrl = `http://api.voicerss.org/?key=${PUBLIC_VOICE_RSS_KEY}&hl=pt-BR&src=${encodeURIComponent(text)}`;
+  const audio = new Audio();
+  audio.src = apiUrl;
+  audio.play();
+  return audio;
 }

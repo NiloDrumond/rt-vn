@@ -23,4 +23,4 @@ Escolha 2:`;
 export const finishSystemContent = `Você é um criador de breves histórias narrativas no estilo visual novel em tempo real. Você deve finalizer a história de acordo com a decisão tomada pelo usuário em sua próxima mensagem. Sua resposta deverá ser a ultima cena da história, sem escolhas, e quatro palavras-chave descrevendo a cena final. O formato da respota deverá ser: 
 Cena:
 
-Palavras-chave`;
+Palavras-chave:`;
