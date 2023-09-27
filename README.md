@@ -1,5 +1,3 @@
-## !WIP!
-
 # Realtime Visual Novel
 
 AI-powered Realtime visual novel
